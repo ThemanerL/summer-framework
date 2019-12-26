@@ -128,26 +128,25 @@ public class StartForms implements Filter {
 
                 log.debug("进行安全检查，若未登录则显示登录对话框");
 
-                if (!form.logon()) {
+                if (form.logon()) {
+                    callForm(form, funcCode);
+                } else {
                     IAppLogin page = Application.getBean(IAppLogin.class, "appLogin", "appLoginManage",
                             "appLoginDefault");
                     page.init(form);
                     String cmd = page.checkToken(client.getToken());
-                    if (cmd != null) {
+                    if (cmd == null) {
+                        // 已授权通过
+                        callForm(form, funcCode);
+                    } else {
                         // 若需要登录，则跳转到登录页
                         if (cmd.startsWith("redirect:")) {
                             resp.sendRedirect(cmd.substring(9));
                         } else {
-                            String url = String.format("/WEB-INF/%s/%s", Application.getAppConfig().getPathForms(),
-                                    cmd);
+                            String url = String.format("/WEB-INF/%s/%s", Application.getAppConfig().getPathForms(), cmd);
                             request.getServletContext().getRequestDispatcher(url).forward(request, response);
                         }
-                    } else {
-                        // 已授权通过
-                        callForm(form, funcCode);
                     }
-                } else {
-                    callForm(form, funcCode);
                 }
             } catch (Exception e) {
                 outputErrorPage(req, resp, e);
