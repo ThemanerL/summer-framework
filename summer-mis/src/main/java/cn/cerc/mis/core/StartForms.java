@@ -135,6 +135,11 @@ public class StartForms implements Filter {
                             "appLoginDefault");
                     page.init(form);
                     String cmd = page.checkToken(client.getToken());
+                    if (form instanceof IJSONForm) {
+                        JsonPage output = new JsonPage(form);
+                        output.setResultMessage(false, "您的设备没有经过安全校验，无法继续作业");
+                        cmd = output.execute();
+                    }
                     if (cmd == null) {
                         // 已授权通过
                         callForm(form, funcCode);
